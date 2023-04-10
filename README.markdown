@@ -41,7 +41,10 @@ Meiro is an URL routing library targeting to [Clack](http://clacklisp.org/).
                   :get (list :handler #'some-handler))
             (list "/not-there"
                   :get (list :handler nil)
-                  :post (list :handler #'some-handler))))))
+                  :post (list :handler #'some-handler))))
+    ;; overridee fallback handler for not acceptable (url and method matched but handler is nil. for example: GET "/not-there")
+    (meiro:create-fallback-handler
+      :not-acceptable (constantly '(406 (:content-type "text/plain") ("it is not acceptable"))))))
 
 
 

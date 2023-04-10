@@ -7,7 +7,7 @@
                 :route-handler)
   (:export :router
            :clack-handler
-           *default-handlers*))
+           :create-fallback-handler))
 
 (in-package :meiro)
 
@@ -52,29 +52,37 @@
             :initial-value '())))
 
 
-(defun dispatch (routes env default-handlers)
+
+(defun dispatch (routes env fallback-handlers)
   (let* ((routes-found (find-routes routes env))
          (route-matched (find-if (lambda (rf) (second rf)) routes-found))
          (route (first route-matched))
          (response (cond
-                     ((not routes-found) (getf default-handlers :not-found))
-                     ((not route-matched) (getf default-handlers :method-not-allowed))
-                     ((null (route-handler route)) (getf default-handlers :not-acceptable))
+                     ((not routes-found) (getf fallback-handlers :not-found))
+                     ((not route-matched) (getf fallback-handlers :method-not-allowed))
+                     ((null (route-handler route)) (getf fallback-handlers :not-acceptable))
                      (t (route-handler route)))))
     (funcall response env)))
 
 
-
-(defvar *default-handlers*
-  (list :not-found (lambda (env) (declare (ignore env)) '(404 (:content-type "text/plain") ("not found")))
-        :method-not-allowed (lambda (env) (declare (ignore env)) '(405 (:content-type "text/plain") ("method not allowed")))
-        :not-acceptable (lambda (env) (declare (ignore env)) '(406 (:content-type "text/plain") ("not acceptable")))))
+(defun create-fallback-handler (&optional &key not-found
+                                            method-not-allowed
+                                            not-acceptable)
+  ;; do 'or' them here for better readability
+  (list :not-found (or not-found
+                       (constantly '(404 (:content-type "text/plain") ("not found"))))
+        :method-not-allowed (or method-not-allowed
+                                (constantly '(405 (:content-type "text/plain") ("method not allowed"))))
+        :not-acceptable (or not-acceptable
+                            (constantly '(406 (:content-type "text/plain") ("not acceptable"))))))
 
 
 (defun router (routes)
   (collect-routes routes))
 
 
-(defun clack-handler (router &optional (default-handlers *default-handlers*))
+(defun clack-handler (router &optional fallback-handler options)
+  (declare (ignore options)) ; ignore it for now
   (lambda (env)
-    (dispatch router env default-handlers)))
+    (dispatch router env (or fallback-handler
+                             (create-fallback-handler)))))

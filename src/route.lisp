@@ -2,7 +2,11 @@
   (:use :cl)
   (:import-from :meiro.url
                 :parse-url
-                :parse-qs))
+                :parse-qs)
+  (:export :route
+           :match-route
+           :equal-route
+           :route-handler))
 
 (in-package :meiro.route)
 
