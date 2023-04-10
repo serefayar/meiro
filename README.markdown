@@ -25,20 +25,23 @@ Meiro is an URL routing library targeting to [Clack](http://clacklisp.org/).
 (use-package :meiro)
 
 (defun some-handler (env)
+  "we have two new keys in env plist, path-params and query-params"
   (destructuring-bind (&key path-params query-params &allow-other-keys) env
      (declare (ignore path-params query-params))
      '(200 (:content-type "text/plain") ("Hello, Meiro!")))) 
 
 ;; meiro router
 (defparameter *app*
-  (router
-    (list (list "/"
-                 :get (list :handler #'some-handler))
-          (list "/found/:found/sub/:sub"
-                 :get (list :handler #'some-handler))
-          (list "/not-there"
-	             :get (list :handler nil)
-                 :post (list :handler #'some-handler)))))
+  (meiro:clack-handler
+    (meiro:router
+      (list (list "/"
+                  :get (list :name "home" 
+                             :handler #'some-handler))
+            (list "/found/:found/sub/:sub"
+                  :get (list :handler #'some-handler))
+            (list "/not-there"
+                  :get (list :handler nil)
+                  :post (list :handler #'some-handler))))))
 
 
 
@@ -55,6 +58,7 @@ Meiro is an URL routing library targeting to [Clack](http://clacklisp.org/).
 ## TODO
 
 - [ ] stabilize the api
+- [ ] more test
 - [ ] performance optimization
 - [ ] better documentation
 

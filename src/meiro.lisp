@@ -6,6 +6,7 @@
                 :equal-route
                 :route-handler)
   (:export :router
+           :clack-handler
            *default-handlers*))
 
 (in-package :meiro)
@@ -70,8 +71,10 @@
         :not-acceptable (lambda (env) (declare (ignore env)) '(406 (:content-type "text/plain") ("not acceptable")))))
 
 
-(defun router (routes &optional (default-handlers *default-handlers*))
-  (let ((routes (collect-routes routes)))
-    (lambda (env)
-      (dispatch routes env default-handlers))))
+(defun router (routes)
+  (collect-routes routes))
 
+
+(defun clack-handler (router &optional (default-handlers *default-handlers*))
+  (lambda (env)
+    (dispatch router env default-handlers)))
