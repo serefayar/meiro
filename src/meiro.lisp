@@ -7,7 +7,8 @@
                 :route-handler)
   (:export :router
            :clack-handler
-           :create-fallback-handler))
+           :create-fallback-handler
+           :*default-handlers*))
 
 (in-package :meiro)
 
@@ -23,7 +24,8 @@
           :collect  (make-instance 'route
                                    :url url
                                    :handler (getf def :handler)
-                                   :method method))))
+                                   :method method
+                                   :openapi (getf def :openapi)))))
 
 (defun collect-routes (routes)
   (reduce #'union-routes
@@ -75,6 +77,10 @@
                                 (constantly '(405 (:content-type "text/plain") ("method not allowed"))))
         :not-acceptable (or not-acceptable
                             (constantly '(406 (:content-type "text/plain") ("not acceptable"))))))
+
+
+(defparameter *default-handlers* (create-fallback-handler)
+  "Default fallback handlers for 404, 405, and 406 responses.")
 
 
 (defun router (routes)

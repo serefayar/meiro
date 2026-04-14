@@ -1,12 +1,17 @@
+
 (defpackage :meiro.route
   (:use :cl)
   (:import-from :meiro.url
-                :parse-url
+   :parse-url
                 :parse-qs)
   (:export :route
-           :match-route
+   :match-route
            :equal-route
-           :route-handler))
+   :route-handler
+           :route-url
+   :route-method
+           :route-params
+   :route-openapi-metadata))
 
 (in-package :meiro.route)
 
@@ -17,7 +22,7 @@
    (method :initarg :method
            :reader cr-method))
   (:report (lambda (condition stream)
-     (format stream "Conflicted route found for \"~a: ~a\"" (cr-method condition) (cr-url condition)))))
+             (format stream "Conflicted route found for \"~a: ~a\"" (cr-method condition) (cr-url condition)))))
 
 
 (defclass route ()
@@ -40,7 +45,11 @@
     :accessor route-pattern)
    (params
     :initform nil
-    :accessor route-params)))
+    :accessor route-params)
+   (openapi-metadata
+    :initarg :openapi
+    :initform nil
+    :accessor route-openapi-metadata)))
 
 (defmethod initialize-instance :after ((route route) &rest initargs &key url &allow-other-keys)
   (declare (ignore initargs))
@@ -59,19 +68,19 @@
   (multiple-value-bind (route-match-p values)
       (ppcre:scan-to-strings (route-pattern route) url)
     (when route-match-p
-        (if (eql method (route-method route))
-            ;; both url and method matched
-            (loop :with query-params = (parse-qs query-string)
-                  :for key :across (getf (route-params route) :path)
-                  :for val :across values
-                  :appending (list (intern (string-upcase key) :keyword) val) :into path-params
-                  :finally
-                     (return (list route-match-p
-                                   t
-                                   (list :path path-params
-                                         :query query-params))))
-            ;; method not matched
-            (list route-match-p nil nil)))))
+      (if (eql method (route-method route))
+          ;; both url and method matched
+          (loop :with query-params = (parse-qs query-string)
+                :for key :across (getf (route-params route) :path)
+                :for val :across values
+                :appending (list (intern (string-upcase key) :keyword) val) :into path-params
+                :finally
+                   (return (list route-match-p
+                                 t
+                                 (list :path path-params
+                                       :query query-params))))
+          ;; method not matched
+          (list route-match-p nil nil)))))
 
 
 (defmethod equal-route ((route1 route) (route2 route))

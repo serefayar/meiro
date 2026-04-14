@@ -3,11 +3,13 @@
   :author "Seref R. Ayar"
   :license "MIT"
   :depends-on (:cl-ppcre
-               :quri)
+               :quri
+               :yason)
   :components ((:module "src"
                 :components
                 ((:file "url")
                  (:file "route")
-                 (:file "meiro"))))
+                 (:file "meiro")
+                 (:file "openapi"))))
   :description ""
   :in-order-to ((test-op (test-op meiro-test))))

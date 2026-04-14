@@ -7,6 +7,7 @@
                 :components
                 ((:file "url")
                  (:file "route")
-                 (:file "meiro"))))
+                 (:file "meiro")
+                 (:file "openapi"))))
   :description "Test system for meiro"
   :perform (test-op (op c) (symbol-call :rove :run c)))
